@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.guesstheflag20.AdvancedLevelActivty
+import com.example.guesstheflag20.AdvancedLevelActivity
 import com.example.guesstheflag20.GuessHintsActivity
 import com.example.guesstheflag20.GuessTheCountryActivity
 import com.example.guesstheflag20.GuessTheFlagActivity
@@ -54,7 +54,7 @@ fun MultipleButtons(context: Context){
             Text(text = "Guess The Flag", style = TextStyle(fontSize = fontSize))
         }
 
-        Button(onClick = { val intent = Intent(context, AdvancedLevelActivty::class.java)
+        Button(onClick = { val intent = Intent(context, AdvancedLevelActivity::class.java)
             context.startActivity(intent) }, modifier = Modifier
             .size(width = 300.dp, height = 100.dp)
             .padding(top = 30.dp)) {
