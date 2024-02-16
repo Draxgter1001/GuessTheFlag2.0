@@ -1,4 +1,4 @@
-package com.example.guesstheflag
+package com.example.guesstheflag20
 
 import android.content.Context
 import android.content.Intent
@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,14 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.guesstheflag20.AdvancedLevelActivity
-import com.example.guesstheflag20.GuessHintsActivity
-import com.example.guesstheflag20.GuessTheCountryActivity
-import com.example.guesstheflag20.GuessTheFlagActivity
 import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 
 @Composable
