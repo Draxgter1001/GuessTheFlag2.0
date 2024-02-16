@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -41,81 +43,8 @@ import kotlin.random.Random
 class GuessTheCountryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val countriesJson = loadCountriesJson()
-        val countriesList = countriesJson.keys().asSequence().map { key ->
-            key to countriesJson.getString(key)
-        }.toList()
-
         setContent {
-            var currentCountryCode by remember {
-                mutableStateOf(pickRandomCountryCode(countriesJson))
-            }
-            var userGuess by remember { mutableStateOf("") }
-            var guessResult by remember{ mutableStateOf<Pair<Boolean, String>?>(null) }
-            var showList by remember{ mutableStateOf(false) }
-
-            GuessTheFlag20Theme {
-                Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.background)
-                    .fillMaxSize())
-                {
-                    FlagImage(countryCode = currentCountryCode)
-                    TextField(
-                        value = userGuess,
-                        onValueChange = { userGuess = it },
-                        label = { Text("Select Country", style = TextStyle(fontSize =
-                        MaterialTheme.typography.bodyLarge.fontSize))},
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            IconButton(onClick = { showList = !showList }) {
-                                Icon(Icons.Filled.ArrowDropDown, "dropdown")
-                            }
-                        }
-                    )
-                    if (showList) {
-                        LazyColumn(modifier = Modifier.fillMaxHeight(.5f)) {
-                            items(countriesList) { country ->
-                                TextButton(onClick = {
-                                    userGuess = country.second
-                                    showList = false
-                                }) {
-                                    Text(text = country.second, style = TextStyle(fontSize =
-                                    MaterialTheme.typography.bodyLarge.fontSize))
-                                }
-                            }
-                        }
-                    }
-                    Button(onClick = {
-                        val correctAnswer = countriesJson.getString(currentCountryCode)
-                        guessResult = Pair(userGuess == correctAnswer, correctAnswer)
-                    }, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
-                        Text("Submit", style = TextStyle(fontSize =
-                        MaterialTheme.typography.bodyLarge.fontSize))
-                    }
-
-                    guessResult?.let {
-                        Text(text = if (it.first) " CORRECT!" else "Wrong",
-                            color = if (it.first) Color.Green else Color.Red,
-                            style = TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
-                            modifier = Modifier.padding(10.dp))
-                        Text(text = "The correct country was: ${it.second}",style =
-                        TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
-                            color = Color.Blue,
-                            modifier = Modifier.padding(10.dp).fillMaxWidth()
-                        )
-
-                        Button(onClick = {
-                            currentCountryCode = pickRandomCountryCode(countriesJson)
-                            userGuess = "" // Reset user guess
-                            guessResult = null // Reset for the next guess
-                        }, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
-                            Text("Next", style = TextStyle(fontSize =
-                            MaterialTheme.typography.bodyLarge.fontSize))
-                        }
-                    }
-                }
-            }
-
+            GuessTheCountryActivityContent()
         }
     }
 
@@ -127,6 +56,92 @@ class GuessTheCountryActivity : ComponentActivity() {
     private fun pickRandomCountryCode(countriesJson: JSONObject): String {
         val keys = countriesJson.keys().asSequence().toList()
         return keys[Random.nextInt(keys.size)]
+    }
+
+    @Composable
+    fun GuessTheCountryActivityContent(){
+        val countriesJson = loadCountriesJson()
+        val countriesList = countriesJson.keys().asSequence().map { key ->
+            key to countriesJson.getString(key)
+        }.toList()
+
+        var currentCountryCode by remember {
+            mutableStateOf(pickRandomCountryCode(countriesJson))
+        }
+        var userGuess by remember { mutableStateOf("") }
+        var guessResult by remember{ mutableStateOf<Pair<Boolean, String>?>(null) }
+        var showList by remember{ mutableStateOf(false) }
+
+        GuessTheFlag20Theme {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.background),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally)
+            {
+                FlagImage(countryCode = currentCountryCode)
+                TextField(
+                    value = userGuess,
+                    onValueChange = { userGuess = it },
+                    label = { Text("Select Country", style = TextStyle(fontSize =
+                    MaterialTheme.typography.bodyLarge.fontSize))},
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { showList = !showList }) {
+                            Icon(Icons.Filled.ArrowDropDown, "dropdown")
+                        }
+                    }
+                )
+                if (showList) {
+                    LazyColumn(modifier = Modifier.fillMaxHeight(.5f)) {
+                        items(countriesList) { country ->
+                            TextButton(onClick = {
+                                userGuess = country.second
+                                showList = false
+                            }) {
+                                Text(text = country.second, style = TextStyle(fontSize =
+                                MaterialTheme.typography.bodyLarge.fontSize))
+                            }
+                        }
+                    }
+                }
+                Button(onClick = {
+                    val correctAnswer = countriesJson.getString(currentCountryCode)
+                    guessResult = Pair(userGuess == correctAnswer, correctAnswer)
+                }, modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()) {
+                    Text("Submit", style = TextStyle(fontSize =
+                    MaterialTheme.typography.bodyLarge.fontSize))
+                }
+
+                guessResult?.let {
+                    Text(text = if (it.first) " CORRECT!" else "Wrong",
+                        color = if (it.first) Color.Green else Color.Red,
+                        style = TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
+                        modifier = Modifier.padding(10.dp))
+                    Text(text = "The correct country was: ${it.second}",style =
+                    TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
+                        color = Color.Blue,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    )
+
+                    Button(onClick = {
+                        currentCountryCode = pickRandomCountryCode(countriesJson)
+                        userGuess = "" // Reset user guess
+                        guessResult = null // Reset for the next guess
+                    }, modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth()) {
+                        Text("Next", style = TextStyle(fontSize =
+                        MaterialTheme.typography.bodyLarge.fontSize))
+                    }
+                }
+            }
+        }
     }
 
     @SuppressLint("DiscouragedApi") //The IDE is recommending me to put this SuppressLint
@@ -141,7 +156,10 @@ class GuessTheCountryActivity : ComponentActivity() {
             Image(
                 painter = painterResource(id = resourceId),
                 contentDescription = "Flag of $countryCode",
-                modifier = Modifier.fillMaxWidth().height(350.dp).padding(20.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(350.dp)
+                    .padding(20.dp)
             )
         } else {
 
