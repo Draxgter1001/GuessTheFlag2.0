@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -54,82 +55,49 @@ class GuessHintsActivity : ComponentActivity() {
     @Composable
     fun GuessHintsContent() {
         val countriesJson by remember { mutableStateOf(loadCountriesJson()) }
-        var currentCountryCode by remember {
-            mutableStateOf(pickRandomCountryCode(countriesJson))
-        }
+        var currentCountryCode by remember { mutableStateOf(pickRandomCountryCode(countriesJson)) }
         var userGuess by remember { mutableStateOf("") }
-        var dashes by remember {
-            mutableStateOf(
-                buildString {
-                    repeat(countriesJson.getString(currentCountryCode).length) {
-                        append('-')
-                    }
-                }
-            )
-        }
+        var dashes by remember { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
         var remainingAttempts by remember { mutableStateOf(3) }
         var message by remember { mutableStateOf("") }
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        // Update this Column to use LaunchedEffect for automatically resetting game state
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             FlagImage(countryCode = currentCountryCode)
-            Text(
-                text = dashes,
-                style = TextStyle(fontSize = 30.sp)
-            )
+            Text(text = dashes, style = TextStyle(fontSize = 30.sp))
             TextField(
                 value = userGuess,
-                onValueChange = { userGuess = it },
+                onValueChange = {
+                    if (it.length <= 1) { // Restrict input to single character
+                        userGuess = it
+                    }
+                },
                 label = { Text("Enter a character") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    submitGuess(
-                        userGuess.lowercase().firstOrNull(),
-                        countriesJson.getString(currentCountryCode),
-                        remainingAttempts,
-                        dashes
-                    ) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
-                        dashes = newDashes
-                        message = newMessage
-                        remainingAttempts = newRemainingAttempts
-                        if (guessedCorrectly) {
-                            userGuess = ""
-                            currentCountryCode = pickRandomCountryCode(countriesJson)
-                            dashes = buildString {
-                                repeat(countriesJson.getString(currentCountryCode).length) {
-                                    append('-')
-                                }
-                            }
-                            remainingAttempts = 3
-                        }
-                    }
-                }),
+                // Removed KeyboardActions for simplicity; logic is now within Button onClick
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             Button(
                 onClick = {
-                    submitGuess(
-                        userGuess.lowercase().firstOrNull(),
-                        countriesJson.getString(currentCountryCode),
-                        remainingAttempts,
-                        dashes
-                    ) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
-                        dashes = newDashes
-                        message = newMessage
-                        remainingAttempts = newRemainingAttempts
-                        if (guessedCorrectly) {
-                            userGuess = ""
-                            currentCountryCode = pickRandomCountryCode(countriesJson)
-                            dashes = buildString {
-                                repeat(countriesJson.getString(currentCountryCode).length) {
-                                    append('-')
-                                }
+                    if (userGuess.isNotBlank()) { // Ensure non-blank input
+                        submitGuess(
+                            userGuess.lowercase().firstOrNull(),
+                            countriesJson.getString(currentCountryCode),
+                            remainingAttempts,
+                            dashes
+                        ) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
+                            dashes = newDashes
+                            message = newMessage
+                            remainingAttempts = newRemainingAttempts
+                            if (guessedCorrectly || remainingAttempts <= 0) {
+                                userGuess = ""
+                                currentCountryCode = pickRandomCountryCode(countriesJson)
+                                dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
+                                remainingAttempts = 3
+                                message = if (guessedCorrectly) "CORRECT!" else "WRONG! The correct country was: ${countriesJson.getString(currentCountryCode)}"
                             }
-                            remainingAttempts = 3
                         }
+                        userGuess = "" // Reset userGuess after each submission
                     }
                 },
                 enabled = userGuess.isNotBlank() && remainingAttempts > 0,
@@ -138,28 +106,11 @@ class GuessHintsActivity : ComponentActivity() {
                 Text("Submit")
             }
             if (message.isNotEmpty()) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-            if (remainingAttempts <= 0) {
-                Button(
-                    onClick = {
-                        userGuess = ""
-                        currentCountryCode = pickRandomCountryCode(countriesJson)
-                        dashes = buildString {
-                            repeat(countriesJson.getString(currentCountryCode).length) {
-                                append('-')
-                            }
-                        }
-                        remainingAttempts = 3
-                        message = ""
-                    },
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    Text("Next")
-                }
+                Text(text = message, modifier = Modifier.padding(vertical = 8.dp), color = when {
+                    message.startsWith("CORRECT") -> Color.Green
+                    message.startsWith("WRONG") -> Color.Red
+                    else -> Color.Black
+                })
             }
         }
     }
@@ -179,28 +130,26 @@ class GuessHintsActivity : ComponentActivity() {
         var guessedCorrectly = false
 
         var found = false
-        for (i in countryName.indices) {
-            if (countryName[i].equals(guessedChar, ignoreCase = true)) {
-                newDashes[i] = countryName[i]
+        countryName.forEachIndexed { index, char ->
+            if (char.equals(guessedChar, ignoreCase = true)) {
+                newDashes[index] = char
                 found = true
             }
         }
 
         if (!found) {
             newRemainingAttempts--
-            newMessage = if (newRemainingAttempts <= 0) {
-                "WRONG! The correct country was: $countryName"
-            } else {
-                "Incorrect guess! $newRemainingAttempts attempts left."
-            }
-        } else if (newDashes.toString() == countryName) {
-            newMessage = "CORRECT!"
+        } else if (!newDashes.contains('-')) {
             guessedCorrectly = true
         }
 
-        if (newMessage.isNotEmpty()) {
-            onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
+        newMessage = when {
+            guessedCorrectly -> "CORRECT!"
+            newRemainingAttempts <= 0 -> "WRONG! The correct country was: $countryName"
+            else -> "Incorrect guess! $newRemainingAttempts attempts left."
         }
+
+        onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
     }
 
     @SuppressLint("DiscouragedApi")
