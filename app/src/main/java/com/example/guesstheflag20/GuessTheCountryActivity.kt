@@ -153,10 +153,7 @@ class GuessTheCountryActivity : ComponentActivity() {
             Image(
                 painter = painterResource(id = resourceId),
                 contentDescription = "Flag of $countryCode",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(350.dp)
-                    .padding(20.dp)
+                modifier = Modifier.fillMaxWidth().height(350.dp).padding(20.dp)
             )
         } else {
 
