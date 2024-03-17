@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.sp
 import org.json.JSONObject
 import kotlin.random.Random
 
-
 class GuessHintsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +75,7 @@ class GuessHintsActivity : ComponentActivity() {
                 // Removed KeyboardActions for simplicity; logic is now within Button onClick
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+
             Button(
                 onClick = {
                     if (userGuess.isNotBlank()) { // Ensure non-blank input
@@ -125,12 +125,11 @@ class GuessHintsActivity : ComponentActivity() {
 
         val newDashes = StringBuilder(currentDashes)
         var newRemainingAttempts = remainingAttempts
-        var newMessage = ""
         var guessedCorrectly = false
 
         var found = false
         countryName.forEachIndexed { index, char ->
-            if (char.equals(guessedChar, ignoreCase = true)) {
+            if (char.equals(guessedChar, ignoreCase = true) && newDashes[index] == '_') {
                 newDashes[index] = char
                 found = true
             }
@@ -138,14 +137,14 @@ class GuessHintsActivity : ComponentActivity() {
 
         if (!found) {
             newRemainingAttempts--
-        } else if (!newDashes.contains('-')) {
-            guessedCorrectly = true
         }
 
-        newMessage = when {
-            guessedCorrectly -> "CORRECT!"
+        guessedCorrectly = !newDashes.contains('_') // Check if there are no more dashes
+
+        val newMessage = when {
+            guessedCorrectly -> "CORRECT! The correct country was: $countryName"
             newRemainingAttempts <= 0 -> "WRONG! The correct country was: $countryName"
-            else -> "Incorrect guess! $newRemainingAttempts attempts left."
+            else -> "Keep guessing! $newRemainingAttempts attempts left."
         }
 
         onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
@@ -176,6 +175,3 @@ class GuessHintsActivity : ComponentActivity() {
         }
     }
 }
-
-
-
