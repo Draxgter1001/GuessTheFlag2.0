@@ -59,8 +59,8 @@ class GuessHintsActivity : ComponentActivity() {
         var dashes by remember { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
         var remainingAttempts by remember { mutableStateOf(3) }
         var message by remember { mutableStateOf("") }
+        var showNextButton by remember { mutableStateOf(false) } // Track whether to show the "Next" button
 
-        // Update this Column to use LaunchedEffect for automatically resetting game state
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             FlagImage(countryCode = currentCountryCode)
             Text(text = dashes, style = TextStyle(fontSize = 30.sp))
@@ -73,47 +73,53 @@ class GuessHintsActivity : ComponentActivity() {
                 },
                 label = { Text("Enter a character") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                // Removed KeyboardActions for simplicity; logic is now within Button onClick
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             Button(
                 onClick = {
-                    if (userGuess.isNotBlank()) { // Ensure non-blank input
-                        submitGuess(
-                            userGuess.lowercase().firstOrNull(),
-                            countriesJson.getString(currentCountryCode),
-                            remainingAttempts,
-                            dashes
-                        ) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
-                            dashes = newDashes
-                            message = newMessage
-                            remainingAttempts = newRemainingAttempts
-                            if (guessedCorrectly || remainingAttempts <= 0) {
-                                userGuess = ""
-                                currentCountryCode = pickRandomCountryCode(countriesJson)
-                                dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
-                                remainingAttempts = 3
-                                message = if (guessedCorrectly) "CORRECT!" else "WRONG! The correct country was: ${countriesJson.getString(currentCountryCode)}"
+                    if (!showNextButton) {
+                        if (userGuess.isNotBlank()) { // Guess submission logic
+                            submitGuess(userGuess.lowercase().firstOrNull(), countriesJson.getString(currentCountryCode), remainingAttempts, dashes) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
+                                dashes = newDashes
+                                message = newMessage
+                                remainingAttempts = newRemainingAttempts
+                                showNextButton = guessedCorrectly || remainingAttempts <= 0
                             }
+                            userGuess = "" // Reset userGuess after each submission
                         }
-                        userGuess = "" // Reset userGuess after each submission
+                    } else {
+                        // Reset for the next flag
+                        currentCountryCode = pickRandomCountryCode(countriesJson)
+                        dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
+                        remainingAttempts = 3
+                        message = ""
+                        showNextButton = false
                     }
                 },
-                enabled = userGuess.isNotBlank() && remainingAttempts > 0,
+                enabled = userGuess.isNotBlank() || showNextButton,
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
-                Text("Submit")
+                Text(if (!showNextButton) "Submit" else "Next")
             }
-            if (message.isNotEmpty()) {
-                Text(text = message, modifier = Modifier.padding(vertical = 8.dp), color = when {
-                    message.startsWith("CORRECT") -> Color.Green
-                    message.startsWith("WRONG") -> Color.Red
-                    else -> Color.Black
-                })
+
+            if(message.isNotBlank()){
+                val messageColor = when {
+                    message.startsWith("CORRECT!") -> Color.Green
+                    message.startsWith("WRONG!") -> Color.Red
+                    else -> Color.Black // Default color for other messages
+                }
+
+                Text(
+                    text = message,
+                    color = messageColor,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
+
         }
     }
+
 
     private fun submitGuess(
         guessedChar: Char?,
