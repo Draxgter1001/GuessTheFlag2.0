@@ -144,6 +144,17 @@ class GuessHintsActivity : ComponentActivity() {
 
         if (!found) {
             newRemainingAttempts--
+            // Reveal a character if the guess is wrong
+            if (newRemainingAttempts > 0) {
+                val indicesToReveal = mutableListOf<Int>()
+                newDashes.forEachIndexed { index, c ->
+                    if (c == '_') indicesToReveal.add(index)
+                }
+                if (indicesToReveal.isNotEmpty()) {
+                    val randomIndexToReveal = indicesToReveal.random()
+                    newDashes[randomIndexToReveal] = countryName[randomIndexToReveal]
+                }
+            }
         }
 
         guessedCorrectly = !newDashes.contains('_') // Check if there are no more dashes
@@ -156,6 +167,7 @@ class GuessHintsActivity : ComponentActivity() {
 
         onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
     }
+
 
     @SuppressLint("DiscouragedApi")
     @Composable
