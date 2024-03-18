@@ -116,7 +116,6 @@ class GuessHintsActivity : ComponentActivity() {
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
-
         }
     }
 
