@@ -5,35 +5,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 import kotlin.random.Random
@@ -47,118 +35,119 @@ class GuessTheCountryActivity : ComponentActivity() {
     }
 
     private fun loadCountriesJson(): JSONObject {
-        val jsonStr = assets.open("countries.json").bufferedReader().use { it.readText() }
+        val inputStream = assets.open("countries.json")
+        val jsonStr = inputStream.bufferedReader().readText()
         return JSONObject(jsonStr)
     }
 
     private fun pickRandomCountryCode(countriesJson: JSONObject): String {
         val keys = countriesJson.keys().asSequence().toList()
-        return keys[Random.nextInt(keys.size)]
+        val randomIndex = Random.nextInt(keys.size)
+        return keys[randomIndex]
     }
 
     @Composable
-    fun GuessTheCountryActivityContent(){
+    fun GuessTheCountryActivityContent() {
         val countriesJson = loadCountriesJson()
         val countriesList = countriesJson.keys().asSequence().map { key ->
             key to countriesJson.getString(key)
         }.toList()
 
-        var currentCountryCode by remember {
-            mutableStateOf(pickRandomCountryCode(countriesJson))
-        }
+        var currentCountryCode by remember { mutableStateOf(pickRandomCountryCode(countriesJson)) }
         var userGuess by remember { mutableStateOf("") }
-        var guessResult by remember{ mutableStateOf<Pair<Boolean, String>?>(null) }
-        var showList by remember{ mutableStateOf(false) }
+        var guessResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
+        var showList by remember { mutableStateOf(false) }
 
-
-        Column(modifier = Modifier
-            .fillMaxSize(),
+        Column(
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally)
-        {
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             FlagImage(countryCode = currentCountryCode)
+
             TextField(
                 value = userGuess,
                 onValueChange = { userGuess = it },
-                label = { Text("Select Country", style = TextStyle(fontSize =
-                MaterialTheme.typography.bodyLarge.fontSize))},
+                label = { Text("Select Country") },
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
-                    IconButton(onClick = { showList = !showList }) {
-                        Icon(Icons.Filled.ArrowDropDown, "dropdown")
-                    }
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = "dropdown", Modifier.clickable { showList = !showList })
                 }
             )
+
             if (showList) {
-                LazyColumn(modifier = Modifier.fillMaxHeight(.5f)) {
+                LazyColumn(modifier = Modifier.fillMaxHeight(0.5f)) {
                     items(countriesList) { country ->
                         TextButton(onClick = {
                             userGuess = country.second
                             showList = false
                         }) {
-                            Text(text = country.second, style = TextStyle(fontSize =
-                            MaterialTheme.typography.bodyLarge.fontSize))
+                            Text(text = country.second)
                         }
                     }
                 }
             }
-            Button(onClick = {
-                val correctAnswer = countriesJson.getString(currentCountryCode)
-                guessResult = Pair(userGuess == correctAnswer, correctAnswer)
-            }, modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth()) {
-                Text("Submit", style = TextStyle(fontSize =
-                MaterialTheme.typography.bodyLarge.fontSize))
+
+            Button(
+                onClick = {
+                    val correctAnswer = countriesJson.getString(currentCountryCode)
+                    guessResult = Pair(userGuess == correctAnswer, correctAnswer)
+                },
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Submit")
             }
 
             guessResult?.let {
-                Text(text = if (it.first) " CORRECT!" else "Wrong",
+                Text(
+                    text = if (it.first) "CORRECT!" else "WRONG",
                     color = if (it.first) Color.Green else Color.Red,
-                    style = TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
-                    modifier = Modifier.padding(10.dp))
-                Text(text = "The correct country was: ${it.second}",style =
-                TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
+                    modifier = Modifier.padding(10.dp)
+                )
+                Text(
+                    text = "The correct country was: ${it.second}",
                     color = Color.Blue,
                     modifier = Modifier
                         .padding(10.dp)
                         .fillMaxWidth()
                 )
 
-                Button(onClick = {
-                    currentCountryCode = pickRandomCountryCode(countriesJson)
-                    userGuess = "" // Reset user guess
-                    guessResult = null // Reset for the next guess
-                }, modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth()) {
-                    Text("Next", style = TextStyle(fontSize =
-                    MaterialTheme.typography.bodyLarge.fontSize))
+                Button(
+                    onClick = {
+                        currentCountryCode = pickRandomCountryCode(countriesJson)
+                        userGuess = "" // Reset user guess
+                        guessResult = null // Reset for the next guess
+                    },
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text("Next")
                 }
             }
         }
-
     }
 
-    @SuppressLint("DiscouragedApi") //The IDE is recommending me to put this SuppressLint
+    @SuppressLint("DiscouragedApi")
     @Composable
     fun FlagImage(countryCode: String) {
         val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(
-            countryCode.lowercase(), "drawable", context.packageName
-        )
+        val resourceId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
 
         if (resourceId != 0) {
             Image(
                 painter = painterResource(id = resourceId),
                 contentDescription = "Flag of $countryCode",
-                modifier = Modifier.fillMaxWidth().height(350.dp).padding(20.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(350.dp)
+                    .padding(20.dp)
             )
         } else {
-
             Text(text = "Image not found", Modifier.fillMaxSize())
         }
     }
 }
-
