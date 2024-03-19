@@ -51,23 +51,30 @@ class GuessHintsActivity : ComponentActivity() {
         return keys[Random.nextInt(keys.size)]
     }
 
+    // The main content of the GuessHintsActivity, comprising UI components and game logic.
     @Composable
     fun GuessHintsContent() {
+        // Remembered state variables to manage game status, input, attempts, and messages.
         val countriesJson by remember { mutableStateOf(loadCountriesJson()) }
         var currentCountryCode by remember { mutableStateOf(pickRandomCountryCode(countriesJson)) }
         var userGuess by remember { mutableStateOf("") }
         var dashes by remember { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
         var remainingAttempts by remember { mutableStateOf(3) }
         var message by remember { mutableStateOf("") }
-        var showNextButton by remember { mutableStateOf(false) } // Track whether to show the "Next" button
+        var showNextButton by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        // Layout for displaying the game UI, including the flag, input field, and buttons.
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             FlagImage(countryCode = currentCountryCode)
             Text(text = dashes, style = TextStyle(fontSize = 30.sp))
             TextField(
                 value = userGuess,
                 onValueChange = {
-                    if (it.length <= 1) { // Restrict input to single character
+                    if (it.length <= 1) { // Ensure only single characters are inputted.
                         userGuess = it
                     }
                 },
@@ -76,20 +83,22 @@ class GuessHintsActivity : ComponentActivity() {
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // Button for submitting guesses or moving to the next flag, with logic for disabling/enabling based on input or game state.
             Button(
                 onClick = {
                     if (!showNextButton) {
-                        if (userGuess.isNotBlank()) { // Guess submission logic
+                        if (userGuess.isNotBlank()) {
+                            // Function call to process the guess and update the game state accordingly.
                             submitGuess(userGuess.lowercase().firstOrNull(), countriesJson.getString(currentCountryCode), remainingAttempts, dashes) { newDashes, newMessage, newRemainingAttempts, guessedCorrectly ->
                                 dashes = newDashes
                                 message = newMessage
                                 remainingAttempts = newRemainingAttempts
                                 showNextButton = guessedCorrectly || remainingAttempts <= 0
                             }
-                            userGuess = "" // Reset userGuess after each submission
+                            userGuess = "" // Clear input after each submission.
                         }
                     } else {
-                        // Reset for the next flag
+                        // Logic for setting up the game for the next flag.
                         currentCountryCode = pickRandomCountryCode(countriesJson)
                         dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
                         remainingAttempts = 3
@@ -103,11 +112,12 @@ class GuessHintsActivity : ComponentActivity() {
                 Text(if (!showNextButton) "Submit" else "Next")
             }
 
-            if(message.isNotBlank()){
+            // Displays messages to the user about their guess's correctness, remaining attempts, or the correct answer.
+            if (message.isNotBlank()) {
                 val messageColor = when {
                     message.startsWith("CORRECT!") -> Color.Green
                     message.startsWith("WRONG!") -> Color.Red
-                    else -> Color.Black // Default color for other messages
+                    else -> Color.Black // Default color for messages that are neither correct nor wrong guesses.
                 }
 
                 Text(
@@ -119,7 +129,7 @@ class GuessHintsActivity : ComponentActivity() {
         }
     }
 
-
+    // Function to process the user's guess, update the display of dashes (for guessed letters), and manage attempts.
     private fun submitGuess(
         guessedChar: Char?,
         countryName: String,
@@ -127,7 +137,7 @@ class GuessHintsActivity : ComponentActivity() {
         currentDashes: String,
         onResult: (String, String, Int, Boolean) -> Unit
     ) {
-        if (guessedChar == null) return
+        if (guessedChar == null) return // Guard clause for null input.
 
         val newDashes = StringBuilder(currentDashes)
         var newRemainingAttempts = remainingAttempts
@@ -143,7 +153,7 @@ class GuessHintsActivity : ComponentActivity() {
 
         if (!found) {
             newRemainingAttempts--
-            // Reveal a character if the guess is wrong
+            // Logic for revealing a character when the guess is wrong, to help guide further guesses.
             if (newRemainingAttempts > 0) {
                 val indicesToReveal = mutableListOf<Int>()
                 newDashes.forEachIndexed { index, c ->
@@ -156,7 +166,7 @@ class GuessHintsActivity : ComponentActivity() {
             }
         }
 
-        guessedCorrectly = !newDashes.contains('_') // Check if there are no more dashes
+        guessedCorrectly = !newDashes.contains('_') // Determine if the game is won.
 
         val newMessage = when {
             guessedCorrectly -> "CORRECT! The correct country was: $countryName"
@@ -166,7 +176,6 @@ class GuessHintsActivity : ComponentActivity() {
 
         onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
     }
-
 
     @SuppressLint("DiscouragedApi")
     @Composable

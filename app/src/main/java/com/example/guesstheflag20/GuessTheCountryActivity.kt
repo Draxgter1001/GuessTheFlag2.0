@@ -34,12 +34,16 @@ class GuessTheCountryActivity : ComponentActivity() {
         }
     }
 
+    // Loads the countries JSON from the assets folder.
+    // This method reads a JSON file containing country codes and names, which is used throughout the game.
     private fun loadCountriesJson(): JSONObject {
         val inputStream = assets.open("countries.json")
         val jsonStr = inputStream.bufferedReader().readText()
         return JSONObject(jsonStr)
     }
 
+    // Randomly selects a country code from the loaded JSON.
+    // This is used to select a new country each time the user plays or moves to the next question.
     private fun pickRandomCountryCode(countriesJson: JSONObject): String {
         val keys = countriesJson.keys().asSequence().toList()
         val randomIndex = Random.nextInt(keys.size)
@@ -48,6 +52,8 @@ class GuessTheCountryActivity : ComponentActivity() {
 
     @Composable
     fun GuessTheCountryActivityContent() {
+        // Initial setup for variables and loading the countries list.
+        // This section sets up the UI and manages the state for the current country, the user's guess, and the guess result.
         val countriesJson = loadCountriesJson()
         val countriesList = countriesJson.keys().asSequence().map { key ->
             key to countriesJson.getString(key)
@@ -65,6 +71,8 @@ class GuessTheCountryActivity : ComponentActivity() {
         ) {
             FlagImage(countryCode = currentCountryCode)
 
+            // The TextField is used for displaying the user's current guess.
+            // It is read-only and shows a dropdown icon for selecting countries.
             TextField(
                 value = userGuess,
                 onValueChange = { userGuess = it },
@@ -76,6 +84,8 @@ class GuessTheCountryActivity : ComponentActivity() {
                 }
             )
 
+            // Displays a list of countries when the dropdown icon is clicked.
+            // This allows the user to select a country as their guess.
             if (showList) {
                 LazyColumn(modifier = Modifier.fillMaxHeight(0.5f)) {
                     items(countriesList) { country ->
@@ -89,6 +99,8 @@ class GuessTheCountryActivity : ComponentActivity() {
                 }
             }
 
+            // A submit button to check the user's guess against the correct answer.
+            // This button checks the user's guess and updates the guessResult variable accordingly.
             Button(
                 onClick = {
                     val correctAnswer = countriesJson.getString(currentCountryCode)
@@ -101,6 +113,8 @@ class GuessTheCountryActivity : ComponentActivity() {
                 Text("Submit")
             }
 
+            // Displays the result of the user's guess and the correct answer.
+            // This section provides feedback to the user after they make a guess, indicating whether they were correct or not.
             guessResult?.let {
                 Text(
                     text = if (it.first) "CORRECT!" else "WRONG",
@@ -115,6 +129,7 @@ class GuessTheCountryActivity : ComponentActivity() {
                         .fillMaxWidth()
                 )
 
+                // Provides a button to load the next question, resetting necessary variables.
                 Button(
                     onClick = {
                         currentCountryCode = pickRandomCountryCode(countriesJson)
@@ -131,6 +146,9 @@ class GuessTheCountryActivity : ComponentActivity() {
         }
     }
 
+    // Displays the flag image for the current country.
+    // This method attempts to load an image resource based on the country code.
+    // If not found, it displays a placeholder text.
     @SuppressLint("DiscouragedApi")
     @Composable
     fun FlagImage(countryCode: String) {
