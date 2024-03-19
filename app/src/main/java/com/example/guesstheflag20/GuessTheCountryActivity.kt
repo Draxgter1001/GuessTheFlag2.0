@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -103,14 +104,24 @@ class GuessTheCountryActivity : ComponentActivity() {
             // This button checks the user's guess and updates the guessResult variable accordingly.
             Button(
                 onClick = {
-                    val correctAnswer = countriesJson.getString(currentCountryCode)
-                    guessResult = Pair(userGuess == correctAnswer, correctAnswer)
+                    // Check if the user has submitted their guess
+                    if(guessResult == null){
+                        // User hasn't guessed yet, so check the guess
+                        val correctAnswer = countriesJson.getString(currentCountryCode)
+                        guessResult = Pair(userGuess == correctAnswer, correctAnswer)
+                    }else{
+                        // User has guessed, so load the next country
+                        currentCountryCode = pickRandomCountryCode(countriesJson)
+                        userGuess = "" // Reset user guess
+                        guessResult = null // Reset for the next guess
+                    }
                 },
+                enabled = userGuess.isNotEmpty(),
                 modifier = Modifier
                     .padding(20.dp)
                     .fillMaxWidth()
             ) {
-                Text("Submit")
+                Text(if(guessResult == null)"Submit" else "Next")
             }
 
             // Displays the result of the user's guess and the correct answer.
@@ -118,6 +129,7 @@ class GuessTheCountryActivity : ComponentActivity() {
             guessResult?.let {
                 Text(
                     text = if (it.first) "CORRECT!" else "WRONG",
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (it.first) Color.Green else Color.Red,
                     modifier = Modifier.padding(10.dp)
                 )
@@ -126,22 +138,8 @@ class GuessTheCountryActivity : ComponentActivity() {
                     color = Color.Blue,
                     modifier = Modifier
                         .padding(10.dp)
-                        .fillMaxWidth()
                 )
 
-                // Provides a button to load the next question, resetting necessary variables.
-                Button(
-                    onClick = {
-                        currentCountryCode = pickRandomCountryCode(countriesJson)
-                        userGuess = "" // Reset user guess
-                        guessResult = null // Reset for the next guess
-                    },
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Next")
-                }
             }
         }
     }

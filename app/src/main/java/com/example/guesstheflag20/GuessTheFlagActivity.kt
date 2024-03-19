@@ -29,46 +29,6 @@ class GuessTheFlagActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun GuessTheFlagGame() {
-        val context = LocalContext.current
-        val countriesJson = remember { loadCountriesJson(context) }
-        var correctCountryCode by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 1).first()) }
-        var flags by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 3)) }
-        var message by remember { mutableStateOf("") }
-        var messageColor by remember { mutableStateOf(Color.Black) }
-
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(text = countriesJson.getString(correctCountryCode), style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
-                    flags.forEach { countryCode ->
-                        FlagImage(countryCode = countryCode, onClick = {
-                            if (countryCode == correctCountryCode) {
-                                message = "CORRECT!"
-                                messageColor = Color.Green
-                            } else {
-                                message = "WRONG!"
-                                messageColor = Color.Red
-                            }
-                        })
-                    }
-                }
-                if (message.isNotEmpty()) {
-                    Text(text = message, color = messageColor, modifier = Modifier.padding(8.dp))
-                }
-                Button(onClick = {
-                    flags = pickRandomCountryCodes(countriesJson, 3)
-                    correctCountryCode = flags.random()
-                    message = ""
-                }) {
-                    Text("Next")
-                }
-            }
-        }
-    }
-
     private fun loadCountriesJson(context: android.content.Context): JSONObject {
         val inputStream = context.assets.open("countries.json")
         val jsonStr = inputStream.bufferedReader().readText()
@@ -78,6 +38,66 @@ class GuessTheFlagActivity : ComponentActivity() {
     private fun pickRandomCountryCodes(countriesJson: JSONObject, amount: Int): List<String> {
         val keys = countriesJson.keys().asSequence().toList()
         return List(amount) { keys[Random.nextInt(keys.size)] }.distinct()
+    }
+
+    @Composable
+    fun GuessTheFlagGame() {
+        val context = LocalContext.current
+        val countriesJson = remember { loadCountriesJson(context) }
+        var correctCountryCode by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 1).first()) }
+        var flags by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 3)) }
+        var message by remember { mutableStateOf("") }
+        var messageColor by remember { mutableStateOf(Color.Black) }
+        var flagClicked by remember { mutableStateOf(false) }
+
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = countriesJson.getString(correctCountryCode),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                flags.forEach { countryCode ->
+                    FlagImage(countryCode = countryCode, onClick = {
+                        flagClicked = true
+                        if (countryCode == correctCountryCode) {
+                            message = "CORRECT!"
+                            messageColor = Color.Green
+                        } else {
+                            message = "WRONG!"
+                            messageColor = Color.Red
+                        }
+                    })
+                }
+
+                if (message.isNotEmpty()) {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = messageColor,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp)) // Adjusted spacing
+                Button(
+                    onClick = {
+                        flags = pickRandomCountryCodes(countriesJson, 3)
+                        correctCountryCode = flags.random()
+                        message = ""
+                        flagClicked = false
+                    },
+                    enabled = flagClicked,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Next")
+                }
+            }
+        }
     }
 
     @SuppressLint("DiscouragedApi")
@@ -91,8 +111,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                 painter = painterResource(id = resourceId),
                 contentDescription = "Flag of $countryCode",
                 modifier = Modifier
-                    .size(100.dp)
-                    .padding(4.dp)
+                    .size(200.dp)
                     .clickable { onClick() }
             )
         } else {
@@ -100,5 +119,3 @@ class GuessTheFlagActivity : ComponentActivity() {
         }
     }
 }
-
-
