@@ -97,6 +97,15 @@ class AdvancedLevelActivity : ComponentActivity() {
                     )
                 }
 
+                if(attempt > 0){
+                    val attemptsLeft = 3 - attempt
+                    Text(
+                        "Attempts left: $attemptsLeft",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+
                 Button(onClick = {
                     correctness.indices.forEach { index ->
                         val countryName = countriesJson.getString(countryCodes[index])

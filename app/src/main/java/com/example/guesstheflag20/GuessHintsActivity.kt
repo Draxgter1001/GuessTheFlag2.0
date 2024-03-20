@@ -171,7 +171,7 @@ class GuessHintsActivity : ComponentActivity() {
         val newMessage = when {
             guessedCorrectly -> "CORRECT! The correct country was: $countryName"
             newRemainingAttempts <= 0 -> "WRONG! The correct country was: $countryName"
-            else -> "Keep guessing! $newRemainingAttempts attempts left."
+            else -> "Attempts left: $newRemainingAttempts"
         }
 
         onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
