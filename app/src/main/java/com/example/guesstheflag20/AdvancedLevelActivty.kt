@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -32,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 import kotlin.random.Random
-
 
 class AdvancedLevelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +62,8 @@ class AdvancedLevelActivity : ComponentActivity() {
         var attempt by remember { mutableStateOf(0) }
         var guesses = remember { mutableStateListOf("", "", "") }
         var correctness = remember { mutableStateListOf(false, false, false) }
+        var scored = remember { mutableStateListOf(false, false, false) } // New state to track score updates
+
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
@@ -76,39 +77,55 @@ class AdvancedLevelActivity : ComponentActivity() {
 
                 countryCodes.forEachIndexed { index, countryCode ->
                     FlagImage(countryCode = countryCode)
-                    BasicTextField(
+                    TextField(
                         value = guesses[index],
                         onValueChange = { value ->
-                            if (!correctness[index]) {
+                            if (!correctness[index] && attempt < 3) {
                                 guesses[index] = value
                             }
                         },
                         modifier = Modifier.fillMaxWidth().padding(4.dp),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = if (correctness[index]) Color.Green else Color.Black),
-                        readOnly = correctness[index]
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = when {
+                                correctness[index] -> Color.Green
+                                attempt >= 3 && !correctness[index] -> Color.Blue // Show correct answers in blue after all attempts
+                                attempt > 0 && guesses[index].isNotBlank() && !correctness[index] -> Color.Red // Incorrect guesses in red, after first attempt
+                                else -> Color.Black
+                            }
+                        ),
+                        readOnly = correctness[index] || attempt >= 3 // Make TextField readOnly if guess is correct or after all attempts
                     )
                 }
 
                 Button(onClick = {
                     correctness.indices.forEach { index ->
                         val countryName = countriesJson.getString(countryCodes[index])
-                        correctness[index] = guesses[index].equals(countryName, ignoreCase = true)
-                        if (correctness[index] && guesses[index].isNotBlank()) {
+                        val correct = guesses[index].equals(countryName, ignoreCase = true)
+                        correctness[index] = correct // Update correctness based on current guess
+
+                        // Increment score only if the guess is correct, not already scored, and attempts are < 3
+                        if (correct && !scored[index] && attempt < 3) {
                             score++
+                            scored[index] = true // Mark as scored
                         }
                     }
 
                     if (correctness.all { it }) {
+                        // Reset for the next round
                         countryCodes.clear()
                         countryCodes.addAll(pickRandomCountryCodes(countriesJson, 3))
                         guesses.replaceAll { "" }
                         correctness.replaceAll { false }
+                        scored.replaceAll { false }
                         attempt = 0
                     } else {
                         attempt++
                         if (attempt == 3) {
+                            // Show correct answers for any remaining incorrect guesses
                             countryCodes.indices.forEach { index ->
-                                guesses[index] = countriesJson.getString(countryCodes[index])
+                                if (!correctness[index]) { // Only update guesses that were incorrect
+                                    guesses[index] = countriesJson.getString(countryCodes[index])
+                                }
                             }
                         }
                     }
@@ -142,4 +159,3 @@ class AdvancedLevelActivity : ComponentActivity() {
         }
     }
 }
-
