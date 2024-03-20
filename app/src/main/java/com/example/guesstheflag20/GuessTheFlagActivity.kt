@@ -29,8 +29,8 @@ class GuessTheFlagActivity : ComponentActivity() {
         }
     }
 
-    private fun loadCountriesJson(context: android.content.Context): JSONObject {
-        val inputStream = context.assets.open("countries.json")
+    private fun loadCountriesJson(): JSONObject {
+        val inputStream = assets.open("countries.json")
         val jsonStr = inputStream.bufferedReader().readText()
         return JSONObject(jsonStr)
     }
@@ -42,8 +42,7 @@ class GuessTheFlagActivity : ComponentActivity() {
 
     @Composable
     fun GuessTheFlagGame() {
-        val context = LocalContext.current
-        val countriesJson = remember { loadCountriesJson(context) }
+        val countriesJson = remember { loadCountriesJson() }
         var correctCountryCode by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 1).first()) }
         var flags by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 3)) }
         var message by remember { mutableStateOf("") }
