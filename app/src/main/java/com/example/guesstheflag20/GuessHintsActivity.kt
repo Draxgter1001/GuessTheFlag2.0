@@ -1,15 +1,11 @@
 package com.example.guesstheflag20
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -23,17 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.json.JSONObject
-import kotlin.random.Random
-
 
 class GuessHintsActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -41,22 +33,12 @@ class GuessHintsActivity : ComponentActivity() {
         }
     }
 
-    private fun loadCountriesJson(): JSONObject {
-        val jsonStr = assets.open("countries.json").bufferedReader().use { it.readText() }
-        return JSONObject(jsonStr)
-    }
-
-    private fun pickRandomCountryCode(countriesJson: JSONObject): String {
-        val keys = countriesJson.keys().asSequence().toList()
-        return keys[Random.nextInt(keys.size)]
-    }
-
     // The main content of the GuessHintsActivity, comprising UI components and game logic.
     @Composable
     fun GuessHintsContent() {
         // Remembered state variables to manage game status, input, attempts, and messages.
-        val countriesJson by remember { mutableStateOf(loadCountriesJson()) }
-        var currentCountryCode by remember { mutableStateOf(pickRandomCountryCode(countriesJson)) }
+        val countriesJson by remember { mutableStateOf(additionalFunctions.loadCountriesJson(this)) }
+        var currentCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
         var userGuess by remember { mutableStateOf("") }
         var dashes by remember { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
         var remainingAttempts by remember { mutableStateOf(3) }
@@ -69,7 +51,7 @@ class GuessHintsActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            FlagImage(countryCode = currentCountryCode)
+            additionalFunctions.FlagImage(countryCode = currentCountryCode)
             Text(text = dashes, style = TextStyle(fontSize = 30.sp))
             TextField(
                 value = userGuess,
@@ -99,7 +81,7 @@ class GuessHintsActivity : ComponentActivity() {
                         }
                     } else {
                         // Logic for setting up the game for the next flag.
-                        currentCountryCode = pickRandomCountryCode(countriesJson)
+                        currentCountryCode = additionalFunctions.pickRandomCountryCode(countriesJson)
                         dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
                         remainingAttempts = 3
                         message = ""
@@ -116,6 +98,7 @@ class GuessHintsActivity : ComponentActivity() {
             if (message.isNotBlank()) {
                 val messageColor = when {
                     message.startsWith("CORRECT!") -> Color.Green
+                    remainingAttempts <= 0 && message.startsWith("WRONG! The correct country was:") -> Color.Blue
                     message.startsWith("WRONG!") -> Color.Red
                     else -> Color.Black // Default color for messages that are neither correct nor wrong guesses.
                 }
@@ -173,32 +156,6 @@ class GuessHintsActivity : ComponentActivity() {
             newRemainingAttempts <= 0 -> "WRONG! The correct country was: $countryName"
             else -> "Attempts left: $newRemainingAttempts"
         }
-
         onResult(newDashes.toString(), newMessage, newRemainingAttempts, guessedCorrectly)
-    }
-
-    @SuppressLint("DiscouragedApi")
-    @Composable
-    fun FlagImage(countryCode: String) {
-        val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(
-            countryCode.lowercase(), "drawable", context.packageName
-        )
-
-        if (resourceId != 0) {
-            Image(
-                painter = painterResource(id = resourceId),
-                contentDescription = "Flag of $countryCode",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(vertical = 16.dp)
-            )
-        } else {
-            Text(
-                text = "Flag Image not found",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
     }
 }

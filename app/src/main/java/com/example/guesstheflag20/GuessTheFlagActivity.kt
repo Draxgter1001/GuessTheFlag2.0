@@ -1,11 +1,8 @@
 package com.example.guesstheflag20
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -15,11 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import org.json.JSONObject
-import kotlin.random.Random
 
 class GuessTheFlagActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,22 +22,11 @@ class GuessTheFlagActivity : ComponentActivity() {
         }
     }
 
-    private fun loadCountriesJson(): JSONObject {
-        val inputStream = assets.open("countries.json")
-        val jsonStr = inputStream.bufferedReader().readText()
-        return JSONObject(jsonStr)
-    }
-
-    private fun pickRandomCountryCodes(countriesJson: JSONObject, amount: Int): List<String> {
-        val keys = countriesJson.keys().asSequence().toList()
-        return List(amount) { keys[Random.nextInt(keys.size)] }.distinct()
-    }
-
     @Composable
     fun GuessTheFlagGame() {
-        val countriesJson = remember { loadCountriesJson() }
-        var correctCountryCode by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 1).first()) }
-        var flags by remember { mutableStateOf(pickRandomCountryCodes(countriesJson, 3)) }
+        val countriesJson = remember { additionalFunctions.loadCountriesJson(this) }
+        var correctCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 1).first()) }
+        var flags by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)) }
         var message by remember { mutableStateOf("") }
         var messageColor by remember { mutableStateOf(Color.Black) }
         var flagClicked by remember { mutableStateOf(false) }
@@ -62,7 +44,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                 )
 
                 flags.forEach { countryCode ->
-                    FlagImage(countryCode = countryCode, onClick = {
+                    additionalFunctions.ClickableFlagImage(countryCode = countryCode, onClick = {
                         flagClicked = true
                         if (countryCode == correctCountryCode) {
                             message = "CORRECT!"
@@ -85,7 +67,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.height(8.dp)) // Adjusted spacing
                 Button(
                     onClick = {
-                        flags = pickRandomCountryCodes(countriesJson, 3)
+                        flags = additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)
                         correctCountryCode = flags.random()
                         message = ""
                         flagClicked = false
@@ -96,25 +78,6 @@ class GuessTheFlagActivity : ComponentActivity() {
                     Text("Next")
                 }
             }
-        }
-    }
-
-    @SuppressLint("DiscouragedApi")
-    @Composable
-    fun FlagImage(countryCode: String, onClick: () -> Unit) {
-        val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
-
-        if (resourceId != 0) {
-            Image(
-                painter = painterResource(id = resourceId),
-                contentDescription = "Flag of $countryCode",
-                modifier = Modifier
-                    .size(200.dp)
-                    .clickable { onClick() }
-            )
-        } else {
-            Text(text = "Image not found", Modifier.padding(4.dp))
         }
     }
 }
