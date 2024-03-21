@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 class GuessHintsActivity : ComponentActivity() {
 
@@ -44,6 +47,21 @@ class GuessHintsActivity : ComponentActivity() {
         var remainingAttempts by remember { mutableStateOf(3) }
         var message by remember { mutableStateOf("") }
         var showNextButton by remember { mutableStateOf(false) }
+        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by remember { mutableStateOf(false) }
+
+        if(setTimer){
+            LaunchedEffect(resetTimer) {
+                timerValue = 10 // Reset the timer for each new country or attempt
+                while (timerValue > 0 && !showNextButton) {
+                    delay(1000) // Wait for 1 second
+                    timerValue--
+                }
+                if (timerValue == 0 && !showNextButton) {
+                    showNextButton = true
+                }
+            }
+        }
 
         // Layout for displaying the game UI, including the flag, input field, and buttons.
         Column(
@@ -51,6 +69,9 @@ class GuessHintsActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if(setTimer){
+                Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
+            }
             additionalFunctions.FlagImage(countryCode = currentCountryCode)
             Text(text = dashes, style = TextStyle(fontSize = 30.sp))
             TextField(
@@ -76,6 +97,7 @@ class GuessHintsActivity : ComponentActivity() {
                                 message = newMessage
                                 remainingAttempts = newRemainingAttempts
                                 showNextButton = guessedCorrectly || remainingAttempts <= 0
+
                             }
                             userGuess = "" // Clear input after each submission.
                         }
@@ -86,12 +108,18 @@ class GuessHintsActivity : ComponentActivity() {
                         remainingAttempts = 3
                         message = ""
                         showNextButton = false
+                        resetTimer = !resetTimer
                     }
                 },
                 enabled = userGuess.isNotBlank() || showNextButton,
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 Text(if (!showNextButton) "Submit" else "Next")
+            }
+
+            if(timerValue <= 0){
+                Text(text = "Time's up! The correct country was: ${countriesJson.getString(currentCountryCode)}",
+                    color = Color.Blue)
             }
 
             // Displays messages to the user about their guess's correctness, remaining attempts, or the correct answer.

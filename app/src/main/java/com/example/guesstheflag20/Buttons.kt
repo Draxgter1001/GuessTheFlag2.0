@@ -20,12 +20,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+var setTimer = false
+var hasBeenClicked = true
+
 @Composable
 fun MultipleButtons(context: Context){
 
     val fontSize by remember { mutableStateOf(24.sp) }
-    var setTimer by remember { mutableStateOf(false) }
-    var hasBeenClicked by remember { mutableStateOf(true) }
+
 
     Column(modifier = Modifier
         .fillMaxSize()
