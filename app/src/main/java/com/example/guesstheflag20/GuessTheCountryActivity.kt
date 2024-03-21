@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 class GuessTheCountryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,12 +43,36 @@ class GuessTheCountryActivity : ComponentActivity() {
         var userGuess by remember { mutableStateOf("") }
         var guessResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
         var showList by remember { mutableStateOf(false) }
+        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by remember { mutableStateOf(false) }
+        var enableButton by remember { mutableStateOf(false) }
+        var stopTimer by remember { mutableStateOf(false) }
+
+        if(setTimer){
+            LaunchedEffect(resetTimer) {
+                timerValue = 10 // Reset the timer for each new country or attempt
+                enableButton = false
+                while (timerValue > 0) {
+                    delay(1000) // Wait for 1 second
+                    if(!stopTimer){
+                        timerValue--
+                    }
+                }
+                if (timerValue == 0) {
+                    guessResult = Pair(false, countriesJson.getString(currentCountryCode))
+                    enableButton = true
+                }
+            }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if(setTimer){
+                Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
+            }
             additionalFunctions.FlagImage(countryCode = currentCountryCode)
 
             // The TextField is used for displaying the user's current guess.
@@ -87,14 +112,18 @@ class GuessTheCountryActivity : ComponentActivity() {
                         // User hasn't guessed yet, so check the guess
                         val correctAnswer = countriesJson.getString(currentCountryCode)
                         guessResult = Pair(userGuess == correctAnswer, correctAnswer)
+                        stopTimer = true
+
                     }else{
                         // User has guessed, so load the next country
                         currentCountryCode = additionalFunctions.pickRandomCountryCode(countriesJson)
                         userGuess = "" // Reset user guess
                         guessResult = null // Reset for the next guess
+                        resetTimer = !resetTimer
+                        stopTimer = false
                     }
                 },
-                enabled = userGuess.isNotEmpty(),
+                enabled = userGuess.isNotEmpty() || enableButton,
                 modifier = Modifier
                     .padding(20.dp)
                     .fillMaxWidth()
@@ -117,7 +146,6 @@ class GuessTheCountryActivity : ComponentActivity() {
                     modifier = Modifier
                         .padding(10.dp)
                 )
-
             }
         }
     }
