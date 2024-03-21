@@ -20,6 +20,10 @@ class GuessTheFlagActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun GuessTheFlagContent(){
+
+    }
 
 }
 
