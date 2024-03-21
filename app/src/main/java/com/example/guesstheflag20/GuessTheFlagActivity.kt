@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 class GuessTheFlagActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +31,23 @@ class GuessTheFlagActivity : ComponentActivity() {
         var message by remember { mutableStateOf("") }
         var messageColor by remember { mutableStateOf(Color.Black) }
         var flagClicked by remember { mutableStateOf(false) }
+        var showButton by remember { mutableStateOf(false) }
+        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by remember { mutableStateOf(false) }
+
+        if(setTimer){
+            LaunchedEffect(resetTimer) {
+                timerValue = 10 // Reset the timer for each new country or attempt
+                while (timerValue > 0 && !showButton) {
+                    delay(1000) // Wait for 1 second
+                    timerValue--
+                }
+                if (timerValue == 0 && !showButton) {
+                    showButton = true
+                    flagClicked = true
+                }
+            }
+        }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
@@ -37,6 +55,9 @@ class GuessTheFlagActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                if(setTimer){
+                    Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
+                }
                 Text(
                     text = countriesJson.getString(correctCountryCode),
                     style = MaterialTheme.typography.bodyLarge,
@@ -53,6 +74,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                             message = "WRONG!"
                             messageColor = Color.Red
                         }
+                        showButton = true
                     })
                 }
 
@@ -65,17 +87,28 @@ class GuessTheFlagActivity : ComponentActivity() {
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp)) // Adjusted spacing
-                Button(
-                    onClick = {
-                        flags = additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)
-                        correctCountryCode = flags.random()
-                        message = ""
-                        flagClicked = false
-                    },
-                    enabled = flagClicked,
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text("Next")
+
+                if(timerValue <= 0){
+                    Text(
+                        text = "Time's up! Press on the button below to try again!",
+                        color = Color.Blue
+                    )
+                }
+                if(showButton){
+                    Button(
+                        onClick = {
+                            flags = additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)
+                            correctCountryCode = flags.random()
+                            message = ""
+                            flagClicked = false
+                            showButton = false
+                            resetTimer = !resetTimer
+                        },
+                        enabled = flagClicked,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text("Next")
+                    }
                 }
             }
         }

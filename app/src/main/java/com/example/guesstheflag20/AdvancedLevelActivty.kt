@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 class AdvancedLevelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +45,40 @@ class AdvancedLevelActivity : ComponentActivity() {
         var guesses = remember { mutableStateListOf("", "", "") }
         var correctness = remember { mutableStateListOf(false, false, false) }
         var scored = remember { mutableStateListOf(false, false, false) } // New state to track score updates
+        var showButton by remember { mutableStateOf(false) }
+        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by remember { mutableStateOf(false) }
+        var stopTimer by remember { mutableStateOf(false) }
+
+        if(setTimer){
+            LaunchedEffect(resetTimer) {
+                timerValue = 10 // Reset the timer for each new country or attempt
+                while (timerValue > 0 && !showButton) {
+                    delay(1000) // Wait for 1 second
+                    if(!stopTimer){
+                        timerValue--
+                    }
+                }
+                if (timerValue == 0 && !showButton) {
+                    attempt = 3
+                    showButton = true
+                    correctness.indices.forEach { index ->
+                        if (!correctness[index]) { // Process only if not already correct
+                            val countryName = countriesJson.getString(countryCodes[index])
+                            val correct = guesses[index].equals(countryName, ignoreCase = true)
+                            correctness[index] = correct
+                            if (correct && !scored[index]) {
+                                score++ // Update the score for correct guesses
+                                scored[index] = true
+                            }
+                            if (!correctness[index]) {
+                                guesses[index] = countryName // Show correct answer in blue
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
@@ -50,6 +86,9 @@ class AdvancedLevelActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                if(setTimer){
+                    Text(text = "Time left: $timerValue", style = MaterialTheme.typography.titleLarge)
+                }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Text("Score: $score", style = MaterialTheme.typography.titleLarge)
                 }
@@ -63,7 +102,9 @@ class AdvancedLevelActivity : ComponentActivity() {
                                 guesses[index] = value
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().padding(4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = when {
                                 correctness[index] -> Color.Green
@@ -86,19 +127,21 @@ class AdvancedLevelActivity : ComponentActivity() {
                 }
 
                 Button(onClick = {
-                    correctness.indices.forEach { index ->
-                        val countryName = countriesJson.getString(countryCodes[index])
-                        val correct = guesses[index].equals(countryName, ignoreCase = true)
-                        correctness[index] = correct // Update correctness based on current guess
+                    if(!showButton || attempt < 3){
+                        correctness.indices.forEach { index ->
+                            val countryName = countriesJson.getString(countryCodes[index])
+                            val correct = guesses[index].equals(countryName, ignoreCase = true)
+                            correctness[index] = correct // Update correctness based on current guess
 
-                        // Increment score only if the guess is correct, not already scored, and attempts are < 3
-                        if (correct && !scored[index] && attempt < 3) {
-                            score++
-                            scored[index] = true // Mark as scored
+                            // Increment score only if the guess is correct, not already scored, and attempts are < 3
+                            if (correct && !scored[index] && attempt < 3) {
+                                score++
+                                scored[index] = true // Mark as scored
+                            }
                         }
                     }
 
-                    if (correctness.all { it }) {
+                    if (correctness.all { it } || attempt >= 3 || showButton) {
                         // Reset for the next round
                         countryCodes.clear()
                         countryCodes.addAll(additionalFunctions.pickRandomCountryCodesList(countriesJson, 3))
@@ -106,9 +149,13 @@ class AdvancedLevelActivity : ComponentActivity() {
                         correctness.replaceAll { false }
                         scored.replaceAll { false }
                         attempt = 0
+                        showButton = false
+                        stopTimer = false
+                        resetTimer = !resetTimer
                     } else {
                         attempt++
                         if (attempt == 3) {
+                            stopTimer = true
                             // Show correct answers for any remaining incorrect guesses
                             countryCodes.indices.forEach { index ->
                                 if (!correctness[index]) { // Only update guesses that were incorrect
@@ -118,7 +165,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                         }
                     }
                 }, modifier = Modifier.padding(8.dp)) {
-                    Text(if (attempt >= 3) "Next" else "Submit")
+                    Text(if (showButton || attempt  >= 3) "Next" else "Submit")
                 }
             }
         }
