@@ -77,7 +77,7 @@ class AdditionalFunctions {
                 painter = painterResource(id = resourceId),
                 contentDescription = "Flag of $countryCode",
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(150.dp)
                     .clickable { onClick() }
             )
         } else {
