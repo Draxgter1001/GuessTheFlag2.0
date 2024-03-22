@@ -20,35 +20,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 import kotlinx.coroutines.delay
 
 class AdvancedLevelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AdvancedLevelContent()
+            GuessTheFlag20Theme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    AdvancedLevelContent()
+                }
+            }
         }
     }
 
     @Composable
     fun AdvancedLevelContent() {
-        val countriesJson = remember { additionalFunctions.loadCountriesJson(this) }
+        val countriesJson = additionalFunctions.loadCountriesJson(this)
         val countryCodes = remember { additionalFunctions.pickRandomCountryCodesList(countriesJson, 3).toMutableStateList() }
-        var score by remember { mutableStateOf(0) }
-        var attempt by remember { mutableStateOf(0) }
+        var score by rememberSaveable { mutableStateOf(0) }
+        var attempt by rememberSaveable { mutableStateOf(0) }
         var guesses = remember { mutableStateListOf("", "", "") }
         var correctness = remember { mutableStateListOf(false, false, false) }
         var scored = remember { mutableStateListOf(false, false, false) } // New state to track score updates
-        var showButton by remember { mutableStateOf(false) }
-        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
-        var resetTimer by remember { mutableStateOf(false) }
-        var stopTimer by remember { mutableStateOf(false) }
+        var showButton by rememberSaveable { mutableStateOf(false) }
+        var timerValue by rememberSaveable { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by rememberSaveable { mutableStateOf(false) }
+        var stopTimer by rememberSaveable { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
@@ -90,7 +96,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                     Text(text = "Time left: $timerValue", style = MaterialTheme.typography.titleLarge)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Text("Score: $score", style = MaterialTheme.typography.titleLarge)
+                    Text(text = "Score: $score", style = MaterialTheme.typography.titleLarge)
                 }
 
                 countryCodes.forEachIndexed { index, countryCode ->
@@ -165,7 +171,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                         }
                     }
                 }, modifier = Modifier.padding(8.dp)) {
-                    Text(if (showButton || attempt  >= 3) "Next" else "Submit")
+                    Text(text = if (showButton || attempt  >= 3) "Next" else "Submit", color = Color.Black)
                 }
             }
         }

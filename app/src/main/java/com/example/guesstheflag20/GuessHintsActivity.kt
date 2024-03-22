@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 import kotlinx.coroutines.delay
 
 class GuessHintsActivity : ComponentActivity() {
@@ -32,7 +35,11 @@ class GuessHintsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GuessHintsContent()
+            GuessTheFlag20Theme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    GuessHintsContent()
+                }
+            }
         }
     }
 
@@ -40,15 +47,15 @@ class GuessHintsActivity : ComponentActivity() {
     @Composable
     fun GuessHintsContent() {
         // Remembered state variables to manage game status, input, attempts, and messages.
-        val countriesJson by remember { mutableStateOf(additionalFunctions.loadCountriesJson(this)) }
-        var currentCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
-        var userGuess by remember { mutableStateOf("") }
-        var dashes by remember { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
-        var remainingAttempts by remember { mutableStateOf(3) }
-        var message by remember { mutableStateOf("") }
-        var showNextButton by remember { mutableStateOf(false) }
-        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
-        var resetTimer by remember { mutableStateOf(false) }
+        val countriesJson = additionalFunctions.loadCountriesJson(this)
+        var currentCountryCode by rememberSaveable { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
+        var userGuess by rememberSaveable { mutableStateOf("") }
+        var dashes by rememberSaveable { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
+        var remainingAttempts by rememberSaveable { mutableStateOf(3) }
+        var message by rememberSaveable { mutableStateOf("") }
+        var showNextButton by rememberSaveable  { mutableStateOf(false) }
+        var timerValue by rememberSaveable  { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by rememberSaveable  { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
@@ -81,7 +88,7 @@ class GuessHintsActivity : ComponentActivity() {
                         userGuess = it
                     }
                 },
-                label = { Text("Enter a character") },
+                label = { Text(text = "Enter a character", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -114,7 +121,7 @@ class GuessHintsActivity : ComponentActivity() {
                 enabled = userGuess.isNotBlank() || showNextButton,
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
-                Text(if (!showNextButton) "Submit" else "Next")
+                Text(text = if (!showNextButton) "Submit" else "Next", color = Color.Black)
             }
 
             if(timerValue <= 0){

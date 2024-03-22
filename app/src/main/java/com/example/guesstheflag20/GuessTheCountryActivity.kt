@@ -12,21 +12,29 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 import kotlinx.coroutines.delay
 
 class GuessTheCountryActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GuessTheCountryActivityContent()
+            GuessTheFlag20Theme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    GuessTheCountryActivityContent()
+                }
+            }
         }
     }
 
@@ -39,14 +47,14 @@ class GuessTheCountryActivity : ComponentActivity() {
             key to countriesJson.getString(key)
         }.toList()
 
-        var currentCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
-        var userGuess by remember { mutableStateOf("") }
-        var guessResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
-        var showList by remember { mutableStateOf(false) }
-        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
-        var resetTimer by remember { mutableStateOf(false) }
-        var enableButton by remember { mutableStateOf(false) }
-        var stopTimer by remember { mutableStateOf(false) }
+        var currentCountryCode by rememberSaveable { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
+        var userGuess by rememberSaveable { mutableStateOf("") }
+        var guessResult by rememberSaveable { mutableStateOf<Pair<Boolean, String>?>(null) }
+        var showList by rememberSaveable { mutableStateOf(false) }
+        var timerValue by rememberSaveable { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by rememberSaveable { mutableStateOf(false) }
+        var enableButton by rememberSaveable { mutableStateOf(false) }
+        var stopTimer by rememberSaveable { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
@@ -97,7 +105,7 @@ class GuessTheCountryActivity : ComponentActivity() {
                             userGuess = country.second
                             showList = false
                         }) {
-                            Text(text = country.second)
+                            Text(text = country.second, color = Color.Black)
                         }
                     }
                 }
@@ -128,7 +136,7 @@ class GuessTheCountryActivity : ComponentActivity() {
                     .padding(20.dp)
                     .fillMaxWidth()
             ) {
-                Text(if(guessResult == null)"Submit" else "Next")
+                Text(text = if(guessResult == null)"Submit" else "Next", color = Color.Black)
             }
 
             // Displays the result of the user's guess and the correct answer.
@@ -136,7 +144,7 @@ class GuessTheCountryActivity : ComponentActivity() {
             guessResult?.let {
                 Text(
                     text = if (it.first) "CORRECT!" else "WRONG",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = if (it.first) Color.Green else Color.Red,
                     modifier = Modifier.padding(10.dp)
                 )

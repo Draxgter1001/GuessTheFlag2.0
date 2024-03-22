@@ -9,31 +9,37 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 import kotlinx.coroutines.delay
 
 class GuessTheFlagActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GuessTheFlagGame()
+            GuessTheFlag20Theme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    GuessTheFlagGameContent()
+                }
+            }
         }
     }
 
     @Composable
-    fun GuessTheFlagGame() {
-        val countriesJson = remember { additionalFunctions.loadCountriesJson(this) }
+    fun GuessTheFlagGameContent() {
+        val countriesJson = additionalFunctions.loadCountriesJson(this)
         var correctCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 1).first()) }
         var flags by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)) }
-        var message by remember { mutableStateOf("") }
+        var message by rememberSaveable { mutableStateOf("") }
         var messageColor by remember { mutableStateOf(Color.Black) }
-        var flagClicked by remember { mutableStateOf(false) }
-        var showButton by remember { mutableStateOf(false) }
-        var timerValue by remember { mutableStateOf(10) } // Start the timer from 10
-        var resetTimer by remember { mutableStateOf(false) }
+        var flagClicked by rememberSaveable { mutableStateOf(false) }
+        var showButton by rememberSaveable { mutableStateOf(false) }
+        var timerValue by rememberSaveable { mutableStateOf(10) } // Start the timer from 10
+        var resetTimer by rememberSaveable { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
@@ -107,7 +113,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                         enabled = flagClicked,
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
-                        Text("Next")
+                        Text(text = "Next", color = Color.Black)
                     }
                 }
             }
