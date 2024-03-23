@@ -31,19 +31,20 @@ class GuessTheFlagActivity : ComponentActivity() {
 
     @Composable
     fun GuessTheFlagGameContent() {
-        val countriesJson = additionalFunctions.loadCountriesJson(this)
-        var correctCountryCode by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 1).first()) }
-        var flags by remember { mutableStateOf(additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)) }
+        val countriesJson = mainFunctions.loadCountriesJson(this)
+        // Pick 3 random country codes and store them in a mutable state list
+        var correctCountryCode by remember { mutableStateOf(mainFunctions.pickRandomCountryCodesList(countriesJson, 1).first()) }
+        var flags by remember { mutableStateOf(mainFunctions.pickRandomCountryCodesList(countriesJson, 3)) }
         var message by rememberSaveable { mutableStateOf("") }
         var messageColor by remember { mutableStateOf(Color.Black) }
         var flagClicked by rememberSaveable { mutableStateOf(false) }
         var showButton by rememberSaveable { mutableStateOf(false) }
-        var timerValue by rememberSaveable { mutableStateOf(10) } // Start the timer from 10
+        var timerValue by rememberSaveable { mutableStateOf(10) }
         var resetTimer by rememberSaveable { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
-                timerValue = 10 // Reset the timer for each new country or attempt
+                timerValue = 10
                 while (timerValue > 0 && !showButton) {
                     delay(1000) // Wait for 1 second
                     timerValue--
@@ -71,7 +72,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                 )
 
                 flags.forEach { countryCode ->
-                    additionalFunctions.ClickableFlagImage(countryCode = countryCode, onClick = {
+                    mainFunctions.ClickableFlagImage(countryCode = countryCode, onClick = {
                         flagClicked = true
                         if (countryCode == correctCountryCode) {
                             message = "CORRECT!"
@@ -92,7 +93,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                         modifier = Modifier.padding(8.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp)) // Adjusted spacing
+                Spacer(modifier = Modifier.height(8.dp))
 
                 if(timerValue <= 0){
                     Text(
@@ -103,7 +104,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                 if(showButton){
                     Button(
                         onClick = {
-                            flags = additionalFunctions.pickRandomCountryCodesList(countriesJson, 3)
+                            flags = mainFunctions.pickRandomCountryCodesList(countriesJson, 3)
                             correctCountryCode = flags.random()
                             message = ""
                             flagClicked = false

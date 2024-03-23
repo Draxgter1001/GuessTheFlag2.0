@@ -44,17 +44,20 @@ class AdvancedLevelActivity : ComponentActivity() {
 
     @Composable
     fun AdvancedLevelContent() {
-        val countriesJson = additionalFunctions.loadCountriesJson(this)
-        val countryCodes = remember { additionalFunctions.pickRandomCountryCodesList(countriesJson, 3).toMutableStateList() }
+
+        val countriesJson = mainFunctions.loadCountriesJson(this)
+        // Pick 3 random country codes and store them in a mutable state list
+        val countryCodes = remember { mainFunctions.pickRandomCountryCodesList(countriesJson, 3).toMutableStateList() }
         var score by rememberSaveable { mutableStateOf(0) }
         var attempt by rememberSaveable { mutableStateOf(0) }
         var guesses = remember { mutableStateListOf("", "", "") }
         var correctness = remember { mutableStateListOf(false, false, false) }
         var scored = remember { mutableStateListOf(false, false, false) } // New state to track score updates
         var showButton by rememberSaveable { mutableStateOf(false) }
-        var timerValue by rememberSaveable { mutableStateOf(10) } // Start the timer from 10
+        var timerValue by rememberSaveable { mutableStateOf(10) }
         var resetTimer by rememberSaveable { mutableStateOf(false) }
         var stopTimer by rememberSaveable { mutableStateOf(false) }
+
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
@@ -86,21 +89,25 @@ class AdvancedLevelActivity : ComponentActivity() {
             }
         }
 
+        // UI layout and logic for the game
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // Display the timer if setTimer is true
                 if(setTimer){
                     Text(text = "Time left: $timerValue", style = MaterialTheme.typography.titleLarge)
                 }
+                // Display the current score
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Text(text = "Score: $score", style = MaterialTheme.typography.titleLarge)
                 }
 
+                // Display the flags and text fields for each country code
                 countryCodes.forEachIndexed { index, countryCode ->
-                    additionalFunctions.AdvancedLevelFlagImage(countryCode = countryCode)
+                    mainFunctions.AdvancedLevelFlagImage(countryCode = countryCode)
                     TextField(
                         value = guesses[index],
                         onValueChange = { value ->
@@ -123,6 +130,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                     )
                 }
 
+                // Display attempts left
                 if(attempt > 0){
                     val attemptsLeft = 3 - attempt
                     Text(
@@ -132,6 +140,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                     )
                 }
 
+                // Submit/Next button
                 Button(onClick = {
                     if(!showButton || attempt < 3){
                         correctness.indices.forEach { index ->
@@ -150,7 +159,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                     if (correctness.all { it } || attempt >= 3 || showButton) {
                         // Reset for the next round
                         countryCodes.clear()
-                        countryCodes.addAll(additionalFunctions.pickRandomCountryCodesList(countriesJson, 3))
+                        countryCodes.addAll(mainFunctions.pickRandomCountryCodesList(countriesJson, 3))
                         guesses.replaceAll { "" }
                         correctness.replaceAll { false }
                         scored.replaceAll { false }

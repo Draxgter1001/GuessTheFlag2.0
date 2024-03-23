@@ -17,7 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable  // Reference:
+// https://developer.android.com/jetpack/compose/state#saveable-state
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,12 +43,12 @@ class GuessTheCountryActivity : ComponentActivity() {
     fun GuessTheCountryActivityContent() {
         // Initial setup for variables and loading the countries list.
         // This section sets up the UI and manages the state for the current country, the user's guess, and the guess result.
-        val countriesJson = additionalFunctions.loadCountriesJson(this)
+        val countriesJson = mainFunctions.loadCountriesJson(this)
         val countriesList = countriesJson.keys().asSequence().map { key ->
             key to countriesJson.getString(key)
         }.toList()
 
-        var currentCountryCode by rememberSaveable { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
+        var currentCountryCode by rememberSaveable { mutableStateOf(mainFunctions.pickRandomCountryCode(countriesJson)) }
         var userGuess by rememberSaveable { mutableStateOf("") }
         var guessResult by rememberSaveable { mutableStateOf<Pair<Boolean, String>?>(null) }
         var showList by rememberSaveable { mutableStateOf(false) }
@@ -56,9 +57,12 @@ class GuessTheCountryActivity : ComponentActivity() {
         var enableButton by rememberSaveable { mutableStateOf(false) }
         var stopTimer by rememberSaveable { mutableStateOf(false) }
 
+        // LaunchedEffect is used to handle side effects in Compose, such as timers or coroutines
+        // Reference: https://developer.android.com/jetpack/compose/side-effects#launchedeffect
+        // Reference for creating a timer in Android Studio using Jetpack Compose: https://developer.android.com/jetpack/compose/side-effects#timer
         if(setTimer){
             LaunchedEffect(resetTimer) {
-                timerValue = 10 // Reset the timer for each new country or attempt
+                timerValue = 10
                 enableButton = false
                 while (timerValue > 0) {
                     delay(1000) // Wait for 1 second
@@ -81,7 +85,7 @@ class GuessTheCountryActivity : ComponentActivity() {
             if(setTimer){
                 Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
             }
-            additionalFunctions.FlagImage(countryCode = currentCountryCode)
+            mainFunctions.FlagImage(countryCode = currentCountryCode)
 
             // The TextField is used for displaying the user's current guess.
             // It is read-only and shows a dropdown icon for selecting countries.
@@ -124,7 +128,7 @@ class GuessTheCountryActivity : ComponentActivity() {
 
                     }else{
                         // User has guessed, so load the next country
-                        currentCountryCode = additionalFunctions.pickRandomCountryCode(countriesJson)
+                        currentCountryCode = mainFunctions.pickRandomCountryCode(countriesJson)
                         userGuess = "" // Reset user guess
                         guessResult = null // Reset for the next guess
                         resetTimer = !resetTimer

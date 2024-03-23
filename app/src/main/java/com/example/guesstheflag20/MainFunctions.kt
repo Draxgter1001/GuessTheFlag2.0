@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 import kotlin.random.Random
 
-val additionalFunctions = AdditionalFunctions()
+val mainFunctions = MainFunctions()
 
-class AdditionalFunctions {
+class MainFunctions {
 
     // Loads the countries JSON from the assets folder.
     // This method reads a JSON file containing country codes and names, which is used throughout the game.
@@ -31,13 +31,13 @@ class AdditionalFunctions {
     }
 
     // Randomly selects a country code from the loaded JSON.
-    // This is used to select a new country each time the user plays or moves to the next question.
     fun pickRandomCountryCode(countriesJson: JSONObject): String {
         val keys = countriesJson.keys().asSequence().toList()
         val randomIndex = Random.nextInt(keys.size)
         return keys[randomIndex]
     }
 
+    // Randomly selects a country code from the loaded JSON and return them as a List
     fun pickRandomCountryCodesList(countriesJson: JSONObject, amount: Int): List<String> {
         val keys = countriesJson.keys().asSequence().toList()
         return List(amount) { keys[Random.nextInt(keys.size)] }.distinct()
@@ -50,11 +50,12 @@ class AdditionalFunctions {
     @Composable
     fun FlagImage(countryCode: String) {
         val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
+        //Get the ID int of the selected country
+        val imageId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
 
-        if (resourceId != 0) {
+        if (imageId != 0) {
             Image(
-                painter = painterResource(id = resourceId),
+                painter = painterResource(id = imageId),
                 contentDescription = "Flag of $countryCode",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -66,15 +67,16 @@ class AdditionalFunctions {
         }
     }
 
+    // Displays the flag image for the current country and make it clickable
     @SuppressLint("DiscouragedApi")
     @Composable
     fun ClickableFlagImage(countryCode: String, onClick: () -> Unit) {
         val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
+        val imageId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
 
-        if (resourceId != 0) {
+        if (imageId != 0) {
             Image(
-                painter = painterResource(id = resourceId),
+                painter = painterResource(id = imageId),
                 contentDescription = "Flag of $countryCode",
                 modifier = Modifier
                     .size(150.dp)
@@ -85,15 +87,16 @@ class AdditionalFunctions {
         }
     }
 
+    // Displays the custom size flag image for the Advanced Level game mode
     @SuppressLint("DiscouragedApi")
     @Composable
     fun AdvancedLevelFlagImage(countryCode: String) {
         val context = LocalContext.current
-        val resourceId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
+        val imageId = context.resources.getIdentifier(countryCode.lowercase(), "drawable", context.packageName)
 
-        if (resourceId != 0) {
+        if (imageId != 0) {
             Image(
-                painter = painterResource(id = resourceId),
+                painter = painterResource(id = imageId),
                 contentDescription = "Flag of $countryCode",
                 modifier = Modifier
                     .fillMaxWidth()

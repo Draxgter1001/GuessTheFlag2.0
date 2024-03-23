@@ -42,23 +42,22 @@ class GuessHintsActivity : ComponentActivity() {
         }
     }
 
-    // The main content of the GuessHintsActivity, comprising UI components and game logic.
     @Composable
     fun GuessHintsContent() {
         // Remembered state variables to manage game status, input, attempts, and messages.
-        val countriesJson = additionalFunctions.loadCountriesJson(this)
-        var currentCountryCode by rememberSaveable { mutableStateOf(additionalFunctions.pickRandomCountryCode(countriesJson)) }
+        val countriesJson = mainFunctions.loadCountriesJson(this)
+        var currentCountryCode by rememberSaveable { mutableStateOf(mainFunctions.pickRandomCountryCode(countriesJson)) }
         var userGuess by rememberSaveable { mutableStateOf("") }
         var dashes by rememberSaveable { mutableStateOf("_".repeat(countriesJson.getString(currentCountryCode).length)) }
         var remainingAttempts by rememberSaveable { mutableStateOf(3) }
         var message by rememberSaveable { mutableStateOf("") }
         var showNextButton by rememberSaveable  { mutableStateOf(false) }
-        var timerValue by rememberSaveable  { mutableStateOf(10) } // Start the timer from 10
+        var timerValue by rememberSaveable  { mutableStateOf(10) }
         var resetTimer by rememberSaveable  { mutableStateOf(false) }
 
         if(setTimer){
             LaunchedEffect(resetTimer) {
-                timerValue = 10 // Reset the timer for each new country or attempt
+                timerValue = 10
                 while (timerValue > 0 && !showNextButton) {
                     delay(1000) // Wait for 1 second
                     timerValue--
@@ -78,7 +77,7 @@ class GuessHintsActivity : ComponentActivity() {
             if(setTimer){
                 Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
             }
-            additionalFunctions.FlagImage(countryCode = currentCountryCode)
+            mainFunctions.FlagImage(countryCode = currentCountryCode)
             Text(text = dashes, style = TextStyle(fontSize = 30.sp))
             TextField(
                 value = userGuess,
@@ -109,7 +108,7 @@ class GuessHintsActivity : ComponentActivity() {
                         }
                     } else {
                         // Logic for setting up the game for the next flag.
-                        currentCountryCode = additionalFunctions.pickRandomCountryCode(countriesJson)
+                        currentCountryCode = mainFunctions.pickRandomCountryCode(countriesJson)
                         dashes = "_".repeat(countriesJson.getString(currentCountryCode).length)
                         remainingAttempts = 3
                         message = ""
