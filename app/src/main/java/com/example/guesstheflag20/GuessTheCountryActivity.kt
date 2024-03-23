@@ -92,7 +92,7 @@ class GuessTheCountryActivity : ComponentActivity() {
             TextField(
                 value = userGuess,
                 onValueChange = { userGuess = it },
-                label = { Text("Select Country") },
+                label = { Text(text = "Select Country") },
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
@@ -153,10 +153,11 @@ class GuessTheCountryActivity : ComponentActivity() {
                     modifier = Modifier.padding(10.dp)
                 )
                 Text(
-                    text = "The correct country was: ${it.second}",
+                    text = if(timerValue <= 0) "Time's up! The correct country was: ${it.second}"
+                    else "The correct country was: ${it.second}",
                     color = Color.Blue,
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(20.dp)
                 )
             }
         }
