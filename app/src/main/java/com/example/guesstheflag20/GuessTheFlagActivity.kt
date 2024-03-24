@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.guesstheflag20.ui.theme.GuessTheFlag20Theme
 import kotlinx.coroutines.delay
 
@@ -66,7 +67,7 @@ class GuessTheFlagActivity : ComponentActivity() {
                     Text(text = "Time left: $timerValue", style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
-                    text = countriesJson.getString(correctCountryCode),
+                    text = "Flag to guess: ${countriesJson.getString(correctCountryCode)}",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -112,9 +113,9 @@ class GuessTheFlagActivity : ComponentActivity() {
                             resetTimer = !resetTimer
                         },
                         enabled = flagClicked,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     ) {
-                        Text(text = "Next", color = Color.Black)
+                        Text(text = "Next", color = Color.Black, fontSize = 20.sp)
                     }
                 }
             }

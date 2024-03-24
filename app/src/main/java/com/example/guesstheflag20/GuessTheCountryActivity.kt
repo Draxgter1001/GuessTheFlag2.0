@@ -73,6 +73,7 @@ class GuessTheCountryActivity : ComponentActivity() {
                 if (timerValue == 0) {
                     guessResult = Pair(false, countriesJson.getString(currentCountryCode))
                     enableButton = true
+                    showList = false
                 }
             }
         }

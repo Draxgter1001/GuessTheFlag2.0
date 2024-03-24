@@ -179,7 +179,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                             }
                         }
                     }
-                }, modifier = Modifier.padding(8.dp)) {
+                }, modifier = Modifier.fillMaxWidth().padding(8.dp)) {
                     Text(text = if (showButton || attempt  >= 3) "Next" else "Submit", color = Color.Black)
                 }
             }

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -117,7 +118,7 @@ class GuessHintsActivity : ComponentActivity() {
                     }
                 },
                 enabled = userGuess.isNotBlank() || showNextButton,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth(.7f).padding(vertical = 8.dp)
             ) {
                 Text(text = if (!showNextButton) "Submit" else "Next", color = Color.Black)
             }
