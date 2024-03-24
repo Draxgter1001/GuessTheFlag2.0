@@ -53,7 +53,7 @@ class AdvancedLevelActivity : ComponentActivity() {
         var guesses = remember { mutableStateListOf("", "", "") }
         var correctness = remember { mutableStateListOf(false, false, false) }
         var scored = remember { mutableStateListOf(false, false, false) } // New state to track score updates
-        var showButton by rememberSaveable { mutableStateOf(false) }
+        var showNextButton by rememberSaveable { mutableStateOf(false) }
         var timerValue by rememberSaveable { mutableStateOf(10) }
         var resetTimer by rememberSaveable { mutableStateOf(false) }
         var stopTimer by rememberSaveable { mutableStateOf(false) }
@@ -62,15 +62,15 @@ class AdvancedLevelActivity : ComponentActivity() {
         if(setTimer){
             LaunchedEffect(resetTimer) {
                 timerValue = 10 // Reset the timer for each new country or attempt
-                while (timerValue > 0 && !showButton) {
+                while (timerValue > 0 && !showNextButton) {
                     delay(1000) // Wait for 1 second
                     if(!stopTimer){
                         timerValue--
                     }
                 }
-                if (timerValue == 0 && !showButton) {
+                if (timerValue == 0 && !showNextButton) {
                     attempt = 3
-                    showButton = true
+                    showNextButton = true
                     correctness.indices.forEach { index ->
                         if (!correctness[index]) { // Process only if not already correct
                             val countryName = countriesJson.getString(countryCodes[index])
@@ -142,7 +142,7 @@ class AdvancedLevelActivity : ComponentActivity() {
 
                 // Submit/Next button
                 Button(onClick = {
-                    if(!showButton || attempt < 3){
+                    if(!showNextButton || attempt < 3){
                         correctness.indices.forEach { index ->
                             val countryName = countriesJson.getString(countryCodes[index])
                             val correct = guesses[index].equals(countryName, ignoreCase = true)
@@ -156,7 +156,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                         }
                     }
 
-                    if (correctness.all { it } || attempt >= 3 || showButton) {
+                    if (correctness.all { it } || attempt >= 3 || showNextButton) {
                         // Reset for the next round
                         countryCodes.clear()
                         countryCodes.addAll(mainFunctions.pickRandomCountryCodesList(countriesJson, 3))
@@ -164,7 +164,7 @@ class AdvancedLevelActivity : ComponentActivity() {
                         correctness.replaceAll { false }
                         scored.replaceAll { false }
                         attempt = 0
-                        showButton = false
+                        showNextButton = false
                         stopTimer = false
                         resetTimer = !resetTimer
                     } else {
@@ -179,8 +179,11 @@ class AdvancedLevelActivity : ComponentActivity() {
                             }
                         }
                     }
+
+                    timerValue = 10
+
                 }, modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                    Text(text = if (showButton || attempt  >= 3) "Next" else "Submit", color = Color.Black)
+                    Text(text = if (showNextButton || attempt  >= 3) "Next" else "Submit", color = Color.Black)
                 }
             }
         }

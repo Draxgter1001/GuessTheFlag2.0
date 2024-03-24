@@ -105,6 +105,7 @@ class GuessHintsActivity : ComponentActivity() {
                                 showNextButton = guessedCorrectly || remainingAttempts <= 0
 
                             }
+                            timerValue = 10
                             userGuess = "" // Clear input after each submission.
                         }
                     } else {
